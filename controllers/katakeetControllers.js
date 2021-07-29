@@ -1,20 +1,53 @@
-const data = require("../data"); // FAKE DATABASE
+const { Katakeet } = require("../db/models");
 
-exports.katakeetCreate = (req, res) => {
-  req.body.id = data[data.length - 1].id + 1;
-  data.push(req.body);
-  res.status(201).json(req.body);
-};
-
-exports.katakeetDetail = (req, res) => {
-  const foundKatkoot = data.find(
-    (katkoot) => katkoot.id === +req.params.katkootId
-  );
-  if (foundKatkoot) {
-    res.json(foundKatkoot); // --> json: ends the response
-  } else {
-    res.status(404).json({ message: "Path Not Found" });
+exports.fetchKatkoot = async (katkootId, next) => {
+  try {
+    const katkoot = await Katakeet.findByPk(katkootId);
+    return katkoot;
+  } catch (error) {
+    next(error);
   }
 };
 
-exports.katakeetList = (req, res) => res.json(data);
+exports.katakeetCreate = async (req, res, next) => {
+  try {
+    req.body.shopId = req.user.id;
+    const newKatakoot = await Katakeet.create(req.body);
+    res.status(201).json(newKatakoot);
+  } catch (error) {
+    next(error);
+  }
+};
+
+exports.katakeetDetail = (req, res) => res.json(req.katkoot);
+
+exports.katakeetUpdate = async (req, res, next) => {
+  try {
+    await req.katkoot.update(req.body);
+    res.json(req.katkoot);
+  } catch (error) {
+    next(error);
+  }
+};
+
+exports.katakeetDelete = async (req, res, next) => {
+  try {
+    await req.katkoot.destroy();
+    res.status(204).end();
+  } catch (error) {
+    next(error);
+  }
+};
+
+exports.katakeetList = async (req, res, next) => {
+  try {
+    const katakeets = await Katakeet.findAll({
+      attributes: {
+        exclude: ["updatedAt"],
+      },
+    }); // findAll is asynchronous
+    res.json(katakeets);
+  } catch (error) {
+    next(error);
+  }
+};
