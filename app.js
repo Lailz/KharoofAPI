@@ -36,7 +36,7 @@ app.use((err, req, res, next) => {
     .json({ message: err.message || "Internal Server Error" });
 });
 
-db.sequelize.sync();
+// db.sequelize.sync();
 
 const PORT = 8080;
 app.listen(PORT, () =>
